@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Versus de Donaciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black;
+            color: lime;
+            padding: 20px;
+        }
+        .versus-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+        .gift-counter {
+            text-align: center;
+        }
+        .gift-counter img {
+            width: 50px;
+            height: 50px;
+        }
+        .gift-counter h2 {
+            font-size: 3em;
+            margin: 10px 0;
+        }
+        .status-message {
+            font-size: 2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌹 VS GG</h1>
+    <div class="versus-container">
+        <!-- Contador de Rosas -->
+        <div class="gift-counter" id="rosas-counter">
+            <img src="https://em-content.zobj.net/thumbs/160/whatsapp/326/rose_1f339.png" alt="Rosa">
+            <h2 id="rosas-score">0</h2>
+        </div>
+        <!-- Contador de GG -->
+        <div class="gift-counter" id="gg-counter">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Trophy_font_awesome.svg/1024px-Trophy_font_awesome.svg.png" alt="GG">
+            <h2 id="gg-score">0</h2>
+        </div>
+    </div>
+    <div class="status-message" id="status-message">¡Esperando regalos!</div>
+
+    <script>
+        // Conexión WebSocket
+        const socket = new WebSocket('ws://localhost:21213/'); // Conexión al WebSocket de Tikfinity
+
+        // Contadores iniciales
+        let rosasScore = 0;
+        let ggScore = 0;
+
+        // Elementos HTML
+        const rosasScoreElement = document.getElementById('rosas-score');
+        const ggScoreElement = document.getElementById('gg-score');
+        const statusMessageElement = document.getElementById('status-message');
+
+        // Conexión al WebSocket
+        socket.onopen = () => {
+            console.log('Conectado al WebSocket de Tikfinity');
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            // Verificar si es un regalo
+            if (data.type === 'gift') {
+                const giftName = data.gift_name; // Nombre del regalo
+                const amount = data.amount || 1; // Cantidad recibida
+
+                if (giftName === 'Rosa') {
+                    rosasScore += amount;
+                    rosasScoreElement.textContent = rosasScore;
+                } else if (giftName === 'GG') {
+                    ggScore += amount;
+                    ggScoreElement.textContent = ggScore;
+                }
+
+                // Actualizar mensaje dinámico
+                if (rosasScore > ggScore) {
+                    statusMessageElement.textContent = `🌹 ¡${rosasScore - ggScore} Rosas a favor!`;
+                } else if (ggScore > rosasScore) {
+                    statusMessageElement.textContent = `GG ¡${ggScore - rosasScore} GG a favor!`;
+                } else {
+                    statusMessageElement.textContent = "¡Empate por ahora!";
+                }
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error('Error en el WebSocket:', error);
+        };
+
+        socket.onclose = () => {
+            console.log('Conexión cerrada con el WebSocket');
+        };
+    </script>
+</body>
+</html>
