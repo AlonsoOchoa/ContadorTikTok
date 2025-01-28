@@ -73,11 +73,12 @@
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
 
-            // Verificar si es un regalo
-            if (data.type === 'gift') {
-                const giftName = data.gift_name; // Nombre del regalo
-                const amount = data.amount || 1; // Cantidad recibida
+            // Verificar si el evento es "gift"
+            if (data.event === 'gift') {
+                const giftName = data.data.giftName; // Nombre del regalo
+                const amount = data.data.amount || 1; // Cantidad recibida
 
+                // Incrementar el contador según el nombre del regalo
                 if (giftName === 'Rosa') {
                     rosasScore += amount;
                     rosasScoreElement.textContent = rosasScore;
