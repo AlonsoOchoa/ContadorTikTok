@@ -81,6 +81,9 @@
     <div class="status-message" id="status-message">¡Esperando acción!</div>
 
     <script>
+        // Conexión WebSocket
+        const socket = new WebSocket('wss://186.104.139.214:21213/'); // Usa tu IP pública y puerto
+
         // Contadores iniciales
         let rosasScore = 0;
         let ggScore = 0;
@@ -89,21 +92,39 @@
         const rosasScoreElement = document.getElementById('rosas-score');
         const ggScoreElement = document.getElementById('gg-score');
 
+        // Conexión WebSocket
+        socket.onopen = () => {
+            console.log('Conectado al WebSocket de Tikfinity');
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            rosasScore = data.rosas;
+            ggScore = data.gg;
+
+            rosasScoreElement.textContent = rosasScore;
+            ggScoreElement.textContent = ggScore;
+        };
+
+        socket.onerror = (error) => {
+            console.error('Error en el WebSocket:', error);
+        };
+
+        socket.onclose = () => {
+            console.log('Conexión cerrada con el WebSocket');
+        };
+
         // Función para actualizar los contadores
         function updateScores() {
             const rosasInput = document.getElementById('rosas-input').value;
             const ggInput = document.getElementById('gg-input').value;
 
-            // Validar que los valores sean números positivos
-            if (rosasInput && rosasInput >= 0) {
-                rosasScore = parseInt(rosasInput);
-                rosasScoreElement.textContent = rosasScore;
-            }
-
-            if (ggInput && ggInput >= 0) {
-                ggScore = parseInt(ggInput);
-                ggScoreElement.textContent = ggScore;
-            }
+            // Enviar los nuevos valores a través del WebSocket
+            const data = {
+                rosas: parseInt(rosasInput),
+                gg: parseInt(ggInput)
+            };
+            socket.send(JSON.stringify(data));
         }
 
         // Función para reiniciar los contadores
@@ -114,6 +135,9 @@
             ggScoreElement.textContent = ggScore;
             document.getElementById('rosas-input').value = '';
             document.getElementById('gg-input').value = '';
+
+            // Enviar valores reiniciados al WebSocket
+            socket.send(JSON.stringify({ rosas: 0, gg: 0 }));
         }
     </script>
 </body>
